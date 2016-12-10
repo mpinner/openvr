@@ -238,8 +238,8 @@ void dprintf( const char *fmt, ... )
 CMainApplication::CMainApplication( int argc, char *argv[] )
 	: m_pCompanionWindow(NULL)
 	, m_pContext(NULL)
-	, m_nCompanionWindowWidth( 640 )
-	, m_nCompanionWindowHeight( 320 )
+	, m_nCompanionWindowWidth( 1024	 )
+	, m_nCompanionWindowHeight( 768 )
 	, m_unSceneProgramID( 0 )
 	, m_unCompanionWindowProgramID( 0 )
 	, m_unControllerTransformProgramID( 0 )
@@ -261,7 +261,7 @@ CMainApplication::CMainApplication( int argc, char *argv[] )
 	, m_iTrackedControllerCount_Last( -1 )
 	, m_iValidPoseCount( 0 )
 	, m_iValidPoseCount_Last( -1 )
-	, m_iSceneVolumeInit( 20 )
+	, m_iSceneVolumeInit( 10 )
 	, m_strPoseClasses("")
 	, m_bShowCubes( true )
 {
@@ -422,11 +422,11 @@ bool CMainApplication::BInit()
  	m_iSceneVolumeHeight = m_iSceneVolumeInit;
  	m_iSceneVolumeDepth = m_iSceneVolumeInit;
  		
- 	m_fScale = 0.3f;
- 	m_fScaleSpacing = 4.0f;
+ 	m_fScale = 0.4f;
+ 	m_fScaleSpacing = 3.0f;
  
  	m_fNearClip = 0.1f;
- 	m_fFarClip = 30.0f;
+ 	m_fFarClip = 100.0f;
  
  	m_iTexture = 0;
  	m_uiVertcount = 0;
@@ -998,7 +998,7 @@ void CMainApplication::SetupScene()
 			for( int x = 0; x< m_iSceneVolumeWidth; x++ )
 			{
 				AddCubeToScene( mat, vertdataarray );
-				mat = mat * Matrix4().translate( m_fScaleSpacing, 0, 0 );
+				mat = mat * Matrix4().translate( (int)m_fScaleSpacing, 0, 0 );
 			}
 			mat = mat * Matrix4().translate( -((float)m_iSceneVolumeWidth) * m_fScaleSpacing, m_fScaleSpacing, 0 );
 		}
@@ -1563,6 +1563,25 @@ void CMainApplication::UpdateHMDMatrixPose()
 		m_mat4HMDPose = m_rmat4DevicePose[vr::k_unTrackedDeviceIndex_Hmd];
 		m_mat4HMDPose.invert();
 	}
+
+	// output lighthouse pose
+	for ( int nDevice = 0; nDevice < vr::k_unMaxTrackedDeviceCount; ++nDevice )
+	{
+		m_rmat4DevicePose[nDevice] = ConvertSteamVRMatrixToMatrix4( m_rTrackedDevicePose[nDevice].mDeviceToAbsoluteTracking );
+
+		if (vr::TrackedDeviceClass_TrackingReference ==  (m_pHMD->GetTrackedDeviceClass(nDevice))) 
+		{
+			dprintf( "static lightsource lightsource%d = {\n", nDevice);
+			dprintf( "    { %f, %f, %f,\n", m_rmat4DevicePose[nDevice][0], m_rmat4DevicePose[nDevice][1], m_rmat4DevicePose[nDevice][2]);
+			dprintf( "      %f, %f, %f,\n", m_rmat4DevicePose[nDevice][4], m_rmat4DevicePose[nDevice][5], m_rmat4DevicePose[nDevice][6]);
+			dprintf( "      %f, %f, %f},\n", m_rmat4DevicePose[nDevice][8], m_rmat4DevicePose[nDevice][9], m_rmat4DevicePose[nDevice][10]);
+			dprintf( "    { %f, %f, %f}\n};\n", m_rmat4DevicePose[nDevice][12], m_rmat4DevicePose[nDevice][13], m_rmat4DevicePose[nDevice][14]);
+			
+		}
+		
+		
+	}
+
 }
 
 
